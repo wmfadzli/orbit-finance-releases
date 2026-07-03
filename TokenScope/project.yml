@@ -1,0 +1,64 @@
+# XcodeGen spec — run `xcodegen generate` in this folder to produce TokenScope.xcodeproj.
+# Install XcodeGen with:  brew install xcodegen
+name: TokenScope
+options:
+  bundleIdPrefix: com.tokenscope
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+
+packages:
+  UsageCore:
+    path: Packages/UsageCore
+
+targets:
+  # ── Menu-bar app ────────────────────────────────────────────────────────
+  TokenScope:
+    type: application
+    platform: macOS
+    sources:
+      - path: App
+      - path: Shared
+    dependencies:
+      - package: UsageCore
+        product: UsageCore
+      - target: TokenScopeWidget
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tokenscope.app
+        PRODUCT_NAME: TokenScope
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        INFOPLIST_FILE: App/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_ENTITLEMENTS: App/TokenScope.entitlements
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_HARDENED_RUNTIME: YES
+        SWIFT_VERSION: "5.9"
+        COMBINE_HIDPI_IMAGES: YES
+        # Set your Apple Developer Team ID here or in Xcode's Signing tab.
+        # DEVELOPMENT_TEAM: XXXXXXXXXX
+
+  # ── WidgetKit extension ─────────────────────────────────────────────────
+  TokenScopeWidget:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: Widget
+      - path: Shared
+    dependencies:
+      - package: UsageCore
+        product: UsageCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tokenscope.app.widget
+        PRODUCT_NAME: TokenScopeWidget
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        INFOPLIST_FILE: Widget/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_ENTITLEMENTS: Widget/TokenScopeWidget.entitlements
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_HARDENED_RUNTIME: YES
+        SWIFT_VERSION: "5.9"
+        # DEVELOPMENT_TEAM: XXXXXXXXXX

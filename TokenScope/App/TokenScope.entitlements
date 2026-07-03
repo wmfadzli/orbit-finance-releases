@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!--
+      The app runs UNSANDBOXED so it can read ~/.claude/projects and ~/.codex.
+      Under the sandbox, homeDirectoryForCurrentUser resolves to a container and
+      the logs would be invisible. Distribute with a Developer ID signature.
+    -->
+    <key>com.apple.security.app-sandbox</key>
+    <false/>
+    <!-- Shared container so the widget can read the snapshot the app writes. -->
+    <key>com.apple.security.application-groups</key>
+    <array>
+        <string>group.com.tokenscope.app</string>
+    </array>
+</dict>
+</plist>
