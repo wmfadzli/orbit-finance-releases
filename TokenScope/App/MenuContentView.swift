@@ -5,6 +5,7 @@ struct MenuContentView: View {
     @EnvironmentObject private var model: UsageViewModel
     @AppStorage("dailyBudgetUSD") private var dailyBudget: Double = 0
     @State private var showingSettings = false
+    @State private var launchAtLogin = LoginItem.isEnabled
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -79,6 +80,15 @@ struct MenuContentView: View {
             Text("Set a budget to show a progress meter. 0 hides it.")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
+
+            Toggle("Launch at login", isOn: $launchAtLogin)
+                .toggleStyle(.switch)
+                .controlSize(.small)
+                .font(.callout)
+                .onChange(of: launchAtLogin) { _, newValue in
+                    // Re-sync to the actual state in case registration fails.
+                    launchAtLogin = LoginItem.setEnabled(newValue)
+                }
 
             Picker("Menu bar shows", selection: $model.primaryProvider) {
                 ForEach(Provider.allCases, id: \.self) { provider in
