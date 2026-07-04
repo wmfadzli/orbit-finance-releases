@@ -52,6 +52,18 @@ machine; the app and widget are thin views over it.
 
 ## Quick start
 
+### Easiest: one-line installer
+
+Builds and launches the menu-bar app (no Apple Developer account, no signing UI):
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/wmfadzli/orbit-finance-releases/main/TokenScope/install.sh)
+```
+
+It prints your usage numbers first, then — if Homebrew + Xcode are present —
+compiles the app and opens it. Missing a prerequisite? It tells you the single
+command to fix it. Safe to re-run to update. Manual steps are below.
+
 ### 1. Verify the numbers first (no Xcode needed)
 
 ```bash
