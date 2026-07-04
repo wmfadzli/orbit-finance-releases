@@ -4,6 +4,7 @@ import UsageCore
 struct MenuContentView: View {
     @EnvironmentObject private var model: UsageViewModel
     @AppStorage("dailyBudgetUSD") private var dailyBudget: Double = 0
+    @AppStorage("showAmountInMenuBar") private var showAmount = false
     @State private var showingSettings = false
     @State private var launchAtLogin = LoginItem.isEnabled
 
@@ -89,6 +90,11 @@ struct MenuContentView: View {
                     // Re-sync to the actual state in case registration fails.
                     launchAtLogin = LoginItem.setEnabled(newValue)
                 }
+
+            Toggle("Show amount in menu bar", isOn: $showAmount)
+                .toggleStyle(.switch)
+                .controlSize(.small)
+                .font(.callout)
 
             Picker("Menu bar shows", selection: $model.primaryProvider) {
                 ForEach(Provider.allCases, id: \.self) { provider in

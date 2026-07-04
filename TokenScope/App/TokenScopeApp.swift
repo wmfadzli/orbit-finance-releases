@@ -4,6 +4,8 @@ import UsageCore
 @main
 struct TokenScopeApp: App {
     @StateObject private var model = UsageViewModel()
+    // Menu bar shows just the gauge icon by default; opt in to the $ amount.
+    @AppStorage("showAmountInMenuBar") private var showAmount = false
 
     init() {
         // On first launch, opt into launch-at-login by default (users generally
@@ -22,10 +24,14 @@ struct TokenScopeApp: App {
                 .environmentObject(model)
                 .onAppear { model.start() }
         } label: {
-            // Menu-bar label: a small gauge glyph plus today's spend.
-            HStack(spacing: 4) {
+            // Icon-only by default; show today's spend beside it if enabled.
+            if showAmount {
+                HStack(spacing: 4) {
+                    Image(systemName: "gauge.with.dots.needle.33percent")
+                    Text(model.menuBarTitle)
+                }
+            } else {
                 Image(systemName: "gauge.with.dots.needle.33percent")
-                Text(model.menuBarTitle)
             }
         }
         .menuBarExtraStyle(.window) // Rich popover rather than a plain menu.
