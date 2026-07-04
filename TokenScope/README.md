@@ -63,7 +63,7 @@ swift run usagescope --json # machine-readable snapshot
 
 If `usagescope` shows sensible numbers, the app will too.
 
-### 2. Build the app + widget
+### 2. Build the menu-bar app (default)
 
 Requires **Xcode 15+** on macOS 14+.
 
@@ -76,17 +76,26 @@ open TokenScope.xcodeproj
 
 In Xcode:
 
-1. Select the **TokenScope** target → *Signing & Capabilities* → pick your Team.
-2. Do the same for the **TokenScopeWidget** target.
-3. Confirm both targets have the **App Groups** capability with the *same* group
-   id as `SharedUsageStore.appGroupID` (`group.com.tokenscope.app`). Change both
-   if you use your own.
-4. Run. The gauge appears in your menu bar. Add the widget from the desktop
-   *Edit Widgets* gallery.
+1. Select the **TokenScope** target → *Signing & Capabilities* → pick your Team
+   (a **free Apple ID works** — the default build needs no special capabilities).
+2. Press ▶︎ Run. The gauge appears in your menu bar.
+
+That's it. No App Group, no paid account needed for the menu-bar app.
 
 > **Signing note:** the app is intentionally **not sandboxed** so it can read
-> `~/.claude`. App Groups require a paid Apple Developer account. For personal
-> use you can also just run the CLI.
+> `~/.claude`. If Xcode complains the bundle id is taken, change
+> `bundleIdPrefix` in `project.yml` to something personal (e.g. `com.yourname`)
+> and rerun `xcodegen generate`.
+
+### 3. (Optional) Add the desktop widget
+
+The widget needs an **App Group**, which requires a **paid Apple Developer
+account**. To enable it:
+
+1. In `project.yml`, uncomment `- target: TokenScopeWidget` under the app target.
+2. Change the app's `CODE_SIGN_ENTITLEMENTS` to `App/TokenScopeWithWidget.entitlements`.
+3. `xcodegen generate`, open the project, set your Team on **both** targets, Run.
+4. Add the widget from the desktop *Edit Widgets* gallery.
 
 ---
 

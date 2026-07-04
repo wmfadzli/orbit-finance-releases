@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!--
+      Use this entitlements file (instead of TokenScope.entitlements) ONLY when
+      you also build the widget. It adds the App Group the app writes and the
+      widget reads. App Groups require a PAID Apple Developer account.
+
+      Steps to enable the widget:
+        1. In project.yml, uncomment `- target: TokenScopeWidget` under the app.
+        2. Point the app's CODE_SIGN_ENTITLEMENTS here.
+        3. `xcodegen generate`, then set your Team on both targets in Xcode.
+    -->
+    <key>com.apple.security.app-sandbox</key>
+    <false/>
+    <key>com.apple.security.application-groups</key>
+    <array>
+        <string>group.com.tokenscope.app</string>
+    </array>
+</dict>
+</plist>

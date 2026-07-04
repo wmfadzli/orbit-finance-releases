@@ -13,6 +13,11 @@ packages:
 
 targets:
   # ── Menu-bar app ────────────────────────────────────────────────────────
+  # Default build is the menu-bar app ALONE — no App Group, no extra
+  # capabilities — so it signs and runs with a free or paid Apple ID.
+  # To also ship the desktop widget: uncomment the `- target: TokenScopeWidget`
+  # line below and switch CODE_SIGN_ENTITLEMENTS to App/TokenScopeWithWidget.entitlements
+  # (that file adds the App Group; the widget needs a paid Apple Developer account).
   TokenScope:
     type: application
     platform: macOS
@@ -22,7 +27,7 @@ targets:
     dependencies:
       - package: UsageCore
         product: UsageCore
-      - target: TokenScopeWidget
+      # - target: TokenScopeWidget   # ← uncomment to bundle the desktop widget
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.tokenscope.app
