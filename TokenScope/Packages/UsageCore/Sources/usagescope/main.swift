@@ -80,7 +80,7 @@ func printSummary(_ summary: ProviderSummary) {
     print("  Last \(summary.dailyTrend.count) Days \(UsageFormatter.costAndTokens(summary.last30Days))")
     if !summary.projects.isEmpty {
         print("  By project (last \(summary.dailyTrend.count) days):")
-        for project in summary.projects.prefix(8) {
+        for project in summary.projects {
             let name = project.displayName.padding(toLength: 18, withPad: " ", startingAt: 0)
             print("    \(name) \(UsageFormatter.costAndTokens(project.totals))")
         }

@@ -140,23 +140,43 @@ struct ProviderCard: View {
     }
 }
 
-/// Top projects by cost over the trend window, each with a proportion bar.
+/// All projects by cost over the trend window, each with a proportion bar.
+/// Scrolls once the list gets long so the panel stays a sensible height.
 struct ProjectBreakdown: View {
     let projects: [ProjectUsage]
     var tint: Color = .accentColor
-    var maxRows: Int = 5
+    /// Beyond this many rows the list becomes a scroll area.
+    var scrollThreshold: Int = 7
 
-    private var shown: [ProjectUsage] { Array(projects.prefix(maxRows)) }
     private var maxCost: Double { max(projects.first?.totals.costUSD ?? 0, 0.0001) }
-    private var overflow: Int { max(0, projects.count - maxRows) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text("By Project")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+            HStack {
+                Text("By Project")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text("\(projects.count)")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+            }
 
-            ForEach(shown) { project in
+            if projects.count > scrollThreshold {
+                ScrollView {
+                    rows
+                }
+                .frame(maxHeight: 190)
+            } else {
+                rows
+            }
+        }
+    }
+
+    private var rows: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            ForEach(projects) { project in
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(alignment: .firstTextBaseline) {
                         Text(project.displayName)
@@ -183,12 +203,7 @@ struct ProjectBreakdown: View {
                     }
                     .frame(height: 3)
                 }
-            }
-
-            if overflow > 0 {
-                Text("+ \(overflow) more")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                .padding(.trailing, projects.count > scrollThreshold ? 6 : 0)
             }
         }
     }
