@@ -61,6 +61,36 @@ final class ClaudeParsingTests: XCTestCase {
             "message": ["usage": ["input_tokens": 0, "output_tokens": 0]],
         ]))
     }
+
+    func testProjectFromCwd() {
+        let line: [String: Any] = [
+            "type": "assistant",
+            "cwd": "/Users/me/dev/myapp",
+            "message": ["model": "sonnet", "usage": ["input_tokens": 5]],
+        ]
+        let record = ClaudeLogParser.record(from: line, projectFallback: "/fallback")
+        XCTAssertEqual(record?.project, "/Users/me/dev/myapp")
+    }
+
+    func testProjectFallbackWhenNoCwd() {
+        let line: [String: Any] = [
+            "type": "assistant",
+            "message": ["model": "sonnet", "usage": ["input_tokens": 5]],
+        ]
+        let record = ClaudeLogParser.record(from: line, projectFallback: "/Users/me/dev/other")
+        XCTAssertEqual(record?.project, "/Users/me/dev/other")
+    }
+
+    func testProjectDirDecoding() {
+        XCTAssertEqual(ClaudeLogParser.projectName(fromDir: "-Users-me-dev-myapp"), "/Users/me/dev/myapp")
+        XCTAssertNil(ClaudeLogParser.projectName(fromDir: ""))
+    }
+
+    func testProjectDisplayName() {
+        XCTAssertEqual(ProjectUsage(project: "/Users/me/dev/myapp", totals: .init()).displayName, "myapp")
+        XCTAssertEqual(ProjectUsage(project: "/Users/me/dev/myapp/", totals: .init()).displayName, "myapp")
+        XCTAssertEqual(ProjectUsage(project: "(unknown)", totals: .init()).displayName, "(unknown)")
+    }
 }
 
 final class AggregatorTests: XCTestCase {
@@ -92,6 +122,31 @@ final class AggregatorTests: XCTestCase {
         XCTAssertEqual(summary.last30Days.usage.inputTokens, 3_000_000)
         XCTAssertEqual(summary.dailyTrend.count, 30)
         XCTAssertEqual(summary.today.costUSD, 3, accuracy: 1e-6)   // 1M input * $3 sonnet
+    }
+
+    func testProjectBreakdown() {
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(identifier: "UTC")!
+        let aggregator = UsageAggregator(pricing: .default, calendar: cal)
+        let now = DateComponents(calendar: cal, year: 2025, month: 6, day: 30, hour: 18).date!
+        let ts = DateComponents(calendar: cal, year: 2025, month: 6, day: 30, hour: 9).date!
+
+        let records = [
+            UsageRecord(timestamp: ts, provider: .claude, model: "sonnet",
+                        usage: TokenUsage(inputTokens: 1_000_000), project: "/dev/alpha"),
+            UsageRecord(timestamp: ts, provider: .claude, model: "sonnet",
+                        usage: TokenUsage(inputTokens: 3_000_000), project: "/dev/beta"),
+            UsageRecord(timestamp: ts, provider: .claude, model: "sonnet",
+                        usage: TokenUsage(inputTokens: 500_000), project: nil),
+        ]
+        let summary = aggregator.summarize(records, provider: .claude, now: now, trendDays: 30)
+
+        XCTAssertEqual(summary.projects.count, 3)
+        // Sorted by cost, highest first → beta (3M) then alpha (1M) then unknown.
+        XCTAssertEqual(summary.projects[0].project, "/dev/beta")
+        XCTAssertEqual(summary.projects[0].displayName, "beta")
+        XCTAssertEqual(summary.projects[1].project, "/dev/alpha")
+        XCTAssertEqual(summary.projects.last?.project, "(unknown)")
     }
 
     func testDeduplication() {

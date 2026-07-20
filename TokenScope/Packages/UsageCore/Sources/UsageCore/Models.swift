@@ -60,17 +60,43 @@ public struct UsageRecord: Codable, Equatable, Sendable {
     /// A stable identity used to de-duplicate records that appear in more than
     /// one log file (Claude Code copies messages across resumed sessions).
     public var dedupeKey: String?
+    /// The project this turn belongs to — the working directory (`cwd`) it ran
+    /// in, or nil when the log didn't record one.
+    public var project: String?
 
     public init(timestamp: Date,
                 provider: Provider,
                 model: String,
                 usage: TokenUsage,
-                dedupeKey: String? = nil) {
+                dedupeKey: String? = nil,
+                project: String? = nil) {
         self.timestamp = timestamp
         self.provider = provider
         self.model = model
         self.usage = usage
         self.dedupeKey = dedupeKey
+        self.project = project
+    }
+}
+
+/// Usage attributed to a single project (working directory) over a time window.
+public struct ProjectUsage: Codable, Equatable, Sendable, Identifiable {
+    /// Full project identifier (usually an absolute path).
+    public var project: String
+    public var totals: UsageTotals
+
+    public var id: String { project }
+
+    public init(project: String, totals: UsageTotals) {
+        self.project = project
+        self.totals = totals
+    }
+
+    /// The last path component, e.g. "/Users/me/dev/myapp" → "myapp".
+    public var displayName: String {
+        let trimmed = project.hasSuffix("/") ? String(project.dropLast()) : project
+        let name = trimmed.split(separator: "/").last.map(String.init) ?? trimmed
+        return name.isEmpty ? project : name
     }
 }
 
@@ -116,6 +142,8 @@ public struct ProviderSummary: Codable, Equatable, Sendable, Identifiable {
     public var last30Days: UsageTotals
     /// Oldest → newest daily buckets, suitable for a sparkline / bar chart.
     public var dailyTrend: [DailyUsage]
+    /// Per-project usage over the trend window, sorted by cost (highest first).
+    public var projects: [ProjectUsage]
 
     public var id: Provider { provider }
 
@@ -123,12 +151,14 @@ public struct ProviderSummary: Codable, Equatable, Sendable, Identifiable {
                 today: UsageTotals = .init(),
                 yesterday: UsageTotals = .init(),
                 last30Days: UsageTotals = .init(),
-                dailyTrend: [DailyUsage] = []) {
+                dailyTrend: [DailyUsage] = [],
+                projects: [ProjectUsage] = []) {
         self.provider = provider
         self.today = today
         self.yesterday = yesterday
         self.last30Days = last30Days
         self.dailyTrend = dailyTrend
+        self.projects = projects
     }
 }
 

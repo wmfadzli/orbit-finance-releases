@@ -129,8 +129,67 @@ struct ProviderCard: View {
                 StatRow(label: "Yesterday", totals: summary.yesterday)
                 StatRow(label: "Last \(summary.dailyTrend.count) Days", totals: summary.last30Days)
             }
+
+            if !summary.projects.isEmpty {
+                Divider().padding(.vertical, 2)
+                ProjectBreakdown(projects: summary.projects, tint: tint)
+            }
         }
         .padding(12)
         .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 10))
+    }
+}
+
+/// Top projects by cost over the trend window, each with a proportion bar.
+struct ProjectBreakdown: View {
+    let projects: [ProjectUsage]
+    var tint: Color = .accentColor
+    var maxRows: Int = 5
+
+    private var shown: [ProjectUsage] { Array(projects.prefix(maxRows)) }
+    private var maxCost: Double { max(projects.first?.totals.costUSD ?? 0, 0.0001) }
+    private var overflow: Int { max(0, projects.count - maxRows) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text("By Project")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            ForEach(shown) { project in
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(project.displayName)
+                            .font(.caption)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .help(project.project)
+                        Spacer(minLength: 8)
+                        Text(UsageFormatter.cost(project.totals.costUSD))
+                            .font(.caption.weight(.semibold))
+                            .monospacedDigit()
+                        Text(UsageFormatter.tokens(project.totals.usage.total))
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                    }
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(.quaternary)
+                            Capsule()
+                                .fill(tint.opacity(0.8))
+                                .frame(width: geo.size.width * (project.totals.costUSD / maxCost))
+                        }
+                    }
+                    .frame(height: 3)
+                }
+            }
+
+            if overflow > 0 {
+                Text("+ \(overflow) more")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
 }

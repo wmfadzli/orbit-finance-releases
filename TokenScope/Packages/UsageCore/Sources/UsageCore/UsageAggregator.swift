@@ -27,6 +27,7 @@ public struct UsageAggregator: Sendable {
         let windowStart = calendar.date(byAdding: .day, value: -(trendDays - 1), to: startOfToday)!
 
         var perDay: [Date: UsageTotals] = [:]
+        var perProject: [String: UsageTotals] = [:]
         var today = UsageTotals()
         var yesterday = UsageTotals()
         var window = UsageTotals()
@@ -38,11 +39,17 @@ public struct UsageAggregator: Sendable {
 
             if day >= windowStart {
                 perDay[day, default: UsageTotals()] += totals
+                perProject[record.project ?? "(unknown)", default: UsageTotals()] += totals
                 window += totals
             }
             if day == startOfToday { today += totals }
             else if day == startOfYesterday { yesterday += totals }
         }
+
+        // Rank projects by cost, highest first.
+        let projects = perProject
+            .map { ProjectUsage(project: $0.key, totals: $0.value) }
+            .sorted { $0.totals.costUSD > $1.totals.costUSD }
 
         // Emit a dense trend: one bucket per day in the window, zero-filled.
         var trend: [DailyUsage] = []
@@ -57,7 +64,8 @@ public struct UsageAggregator: Sendable {
             today: today,
             yesterday: yesterday,
             last30Days: window,
-            dailyTrend: trend
+            dailyTrend: trend,
+            projects: projects
         )
     }
 
