@@ -36,15 +36,29 @@ public struct ClaudeLogParser: UsageLogParser {
     public func parse(root: URL) throws -> [UsageRecord] {
         var records: [UsageRecord] = []
 
-        JSONL.forEachLine(under: root) { line in
-            guard let record = Self.record(from: line) else { return }
-            records.append(record)
+        JSONL.forEachFile(under: root) { file in
+            // Fallback project id from the folder name: Claude Code names each
+            // project dir after its cwd with "/" replaced by "-".
+            let fallback = Self.projectName(fromDir: file.deletingLastPathComponent().lastPathComponent)
+            JSONL.forEachLine(inFile: file) { line in
+                guard let record = Self.record(from: line, projectFallback: fallback) else { return }
+                records.append(record)
+            }
         }
         return records
     }
 
+    /// Turns Claude Code's encoded project-dir name back into a path-ish string.
+    /// "-Users-me-dev-myapp" → "/Users/me/dev/myapp". Best-effort: real folder
+    /// names containing "-" can't be perfectly recovered, but the last segment
+    /// (used for display) is usually right.
+    static func projectName(fromDir dir: String) -> String? {
+        guard !dir.isEmpty else { return nil }
+        return dir.hasPrefix("-") ? dir.replacingOccurrences(of: "-", with: "/") : dir
+    }
+
     /// Exposed for unit tests: turn one decoded log line into a record, or nil.
-    static func record(from line: [String: Any]) -> UsageRecord? {
+    static func record(from line: [String: Any], projectFallback: String? = nil) -> UsageRecord? {
         // Only assistant turns carry usage; user/summary/system lines don't.
         if let type = line.string("type"), type != "assistant" { return nil }
 
@@ -77,12 +91,17 @@ public struct ClaudeLogParser: UsageLogParser {
             }
         }()
 
+        // Prefer the exact working directory recorded on the line; fall back to
+        // the decoded project-folder name.
+        let project = line.string("cwd") ?? projectFallback
+
         return UsageRecord(
             timestamp: timestamp,
             provider: .claude,
             model: model,
             usage: usage,
-            dedupeKey: dedupeKey
+            dedupeKey: dedupeKey,
+            project: project
         )
     }
 }

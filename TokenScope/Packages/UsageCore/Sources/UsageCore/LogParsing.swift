@@ -13,6 +13,14 @@ enum JSONL {
     /// once per non-empty line with the decoded top-level object.
     static func forEachLine(under root: URL,
                             handler: ([String: Any]) -> Void) {
+        forEachFile(under: root) { url in
+            forEachLine(inFile: url, handler: handler)
+        }
+    }
+
+    /// Enumerates `*.jsonl` files under `root` (recursively), passing each file's
+    /// URL to `handler`. Missing directories yield nothing.
+    static func forEachFile(under root: URL, handler: (URL) -> Void) {
         let fm = FileManager.default
         guard fm.fileExists(atPath: root.path) else { return }
 
@@ -24,7 +32,7 @@ enum JSONL {
         ) else { return }
 
         for case let url as URL in enumerator where url.pathExtension == "jsonl" {
-            forEachLine(inFile: url, handler: handler)
+            handler(url)
         }
     }
 
