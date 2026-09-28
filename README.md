@@ -21,7 +21,7 @@ On the release page, open **Assets** and pick the file for your device:
 The Windows `.exe` won't open on a Chromebook. Use the `.deb` file instead:
 
 1. Turn on Linux once: **Settings > About ChromeOS > Developers > Linux development environment > Set up**.
-2. Check your chip: **Settings > About ChromeOS > Additional details**. Intel, AMD or Celeron means `amd64`. MediaTek or Snapdragon means `arm64`.
+2. Check your chip: open the **Diagnostics** app from the launcher and look at **CPU**. Intel, AMD or Celeron means `amd64`. MediaTek or Snapdragon means `arm64`.
 3. Download the matching `.deb` and double-click it in **Files**, then choose **Install**.
 4. Open Orbit Finance from the launcher (it sits in the **Linux apps** folder).
 
